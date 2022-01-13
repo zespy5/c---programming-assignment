@@ -1,53 +1,65 @@
+#include "shape.h"
 #include <iostream>
-#include<limits>
-#include<string>
-#include<algorithm>
-
+#include <algorithm>
+#include <numeric>
 using namespace std;
 
 
 int main() {
 
-    string cmd;
-    string cmdInt = "int";
-    string cmdLong = "long";
-    string cmdFloat = "float";
-    string cmdDouble = "double";
-    string cmdQuit = "quit";
-    int count[4] = {0,0,0,0};
+    vector<unique_ptr<Rectangle>> rvec; vector<unique_ptr<Circle>> cvec;
 
-    while(1){
-        cin>>cmd;
+    while(true) {
 
-        transform(begin(cmd),end(cmd),begin(cmd),[](unsigned char c){return tolower(c);});
+        string cmd; cin >> cmd;
 
-        if(cmd == cmdQuit)
-            break;
-        else if(cmd == cmdInt){
-            cout<<numeric_limits<int>::max()<<" "<<numeric_limits<int>::min()<<endl;
-            count[0]++;
-        }
-        else if(cmd == cmdLong){
-            cout<<numeric_limits<long>::max()<<" "<<numeric_limits<long>::min()<<endl;
-            count[1]++;
-        }
-        else if(cmd == cmdFloat){
-            cout<<numeric_limits<float>::max()<<" "<<numeric_limits<float>::min()<<endl;
-            count[2]++;
-        }
-        else if(cmd == cmdDouble){
-            cout<<numeric_limits<double>::max()<<" "<<numeric_limits<double>::min()<<endl;
-            count[3]++;
-        }
-        else{
-            cout<<"Invalid Command"<<endl;
+        transform(begin(cmd), end(cmd), begin(cmd),  [](char& c){return tolower(c);});
+
+        Command c = getCommand(cmd);
+
+
+        switch(c){
+            case RECT:
+                rvec.emplace_back(make_rectangle());
+                break;
+
+            case CIRCLE:
+                cvec.emplace_back(make_circle());
+                break;
+
+            case SORT:
+                sort(rvec.begin(),rvec.end(), [](unique_ptr<Rectangle>& a,unique_ptr<Rectangle>& b){return a->area > b->area;});
+                sort(cvec.begin(),cvec.end(),[](unique_ptr<Circle>& a,unique_ptr<Circle>& b){return a->area > b->area;});
+
+                break;
+
+            case PRINT:
+                static auto printR = [](const unique_ptr<Rectangle>& a) {cout<<"Rectangle:"<<"\t"<<a->width<<"\t"<<a->height<<"\t"<<a->area<<endl;};
+                for_each(rvec.cbegin(),rvec.cend(),printR);
+                static auto printC = [](const unique_ptr<Circle>& a) {cout<<"Circle:"<<"     \t"<<a->radius<<"\t"<<a->area<<endl;};
+                for_each(cvec.cbegin(),cvec.cend(),printC);
+
+                break;
+
+            case SUM:
+
+                static double sumArea = accumulate(rvec.begin(),rvec.end(),0.0,[](double sum, const unique_ptr<Rectangle>& rec){return sum+rec->area;});
+                sumArea += accumulate(cvec.begin(),cvec.end(),0.0,[](double sum, const unique_ptr<Circle>& cir){return sum+cir->area;});
+                cout<<sumArea<<endl;
+                break;
+
+            case CLEAR:
+                rvec.clear(); cvec.clear();
+                break;
+
+            case QUIT:
+                return 0;
+
+            case INVALID:
+                cout << "Invalid Command" << '\n';
+                break;
+
+
         }
     }
-
-    cout<<"=== the number of types ==="<<endl;
-    cout<<"int: "<<count[0]<<endl;
-    cout<<"long: "<<count[1]<<endl;
-    cout<<"float: "<<count[2]<<endl;
-    cout<<"double: "<<count[3]<<endl;
-
 }
